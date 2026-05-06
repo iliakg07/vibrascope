@@ -11,6 +11,8 @@ const state = {
   rotation: 22,
   deformation: 0.35,
   lastFrame: 0,
+  lastMoleculePaint: 0,
+  resizeTimer: null,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -26,6 +28,10 @@ function stiffnessById(id) {
 
 function percent(value) {
   return `${Math.round(value * 100)}%`;
+}
+
+function isMobileViewport() {
+  return window.matchMedia("(max-width: 760px)").matches;
 }
 
 function setSection(section) {
@@ -494,12 +500,23 @@ function renderAtomBars() {
 
 function renderLearning() {
   renderPeakCard();
-  renderModeGrid();
-  drawSpectrum($("#spectrumChart"), state.selectedModeId, setMode);
-  renderStiffness();
-  renderInternalChanges();
-  renderHeatmap();
-  renderAtomBars();
+  if (state.tab === "spectrum") {
+    drawSpectrum($("#spectrumChart"), state.selectedModeId, setMode);
+    drawMolecule($("#moleculeViewer"), state.selectedModeId);
+  }
+  if (state.tab === "modes") {
+    renderModeGrid();
+  }
+  if (state.tab === "stiffness") {
+    renderStiffness();
+  }
+  if (state.tab === "internal") {
+    renderInternalChanges();
+  }
+  if (state.tab === "atoms") {
+    renderHeatmap();
+    renderAtomBars();
+  }
 }
 
 function randomModeId() {
@@ -554,7 +571,7 @@ function newExpertQuestion() {
 }
 
 function normalize(text) {
-  return text.toLowerCase().replaceAll("ё", "е").trim();
+  return text.toLowerCase().replace(/ё/g, "е").trim();
 }
 
 function includesAny(text, keywords) {
@@ -636,8 +653,15 @@ function downloadData() {
 function animate(time) {
   state.lastFrame = time / 540;
   const viewer = $("#moleculeViewer");
-  if (viewer && state.section === "learn") {
+  const frameInterval = isMobileViewport() ? 120 : 48;
+  if (
+    viewer
+    && state.section === "learn"
+    && state.tab === "spectrum"
+    && time - state.lastMoleculePaint > frameInterval
+  ) {
     drawMolecule(viewer, state.selectedModeId);
+    state.lastMoleculePaint = time;
   }
   requestAnimationFrame(animate);
 }
@@ -662,8 +686,11 @@ function bindEvents() {
   $("#checkExpert").addEventListener("click", checkExpertAnswer);
   $("#downloadData").addEventListener("click", downloadData);
   window.addEventListener("resize", () => {
-    renderLearning();
-    renderDatabase();
+    clearTimeout(state.resizeTimer);
+    state.resizeTimer = setTimeout(() => {
+      renderLearning();
+      renderDatabase();
+    }, 180);
   });
 }
 
