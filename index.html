@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ВибраСкоп | ИК-спектры и молекулярные колебания</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">V</div>
+          <div>
+            <h1>ВибраСкоп</h1>
+            <p>ИК-спектры через движение молекул и линейную алгебру</p>
+          </div>
+        </div>
+        <nav class="main-nav" aria-label="Главные разделы">
+          <button class="nav-btn active" data-section="learn">Обучение</button>
+          <button class="nav-btn" data-section="practice">Практикум</button>
+          <button class="nav-btn" data-section="expert">Эксперт</button>
+          <button class="nav-btn" data-section="base">База</button>
+        </nav>
+      </header>
+
+      <main>
+        <section class="section active" id="section-learn">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Учебный режим</p>
+              <h2>Нажмите на пик спектра и посмотрите, что делает молекула</h2>
+            </div>
+            <div class="molecule-badge">
+              <span>Текущая молекула</span>
+              <strong>H2CO, формальдегид</strong>
+            </div>
+          </div>
+
+          <div class="learn-tabs" aria-label="Блоки обучения">
+            <button class="tab-btn active" data-tab="spectrum">Спектр</button>
+            <button class="tab-btn" data-tab="modes">Моды</button>
+            <button class="tab-btn" data-tab="stiffness">Жесткость</button>
+            <button class="tab-btn" data-tab="internal">Связи и углы</button>
+            <button class="tab-btn" data-tab="atoms">Атомы</button>
+          </div>
+
+          <div class="learn-layout">
+            <aside class="side-panel">
+              <label class="select-label" for="modeSelect">Выбранный пик</label>
+              <select id="modeSelect"></select>
+              <div id="peakCard" class="peak-card"></div>
+            </aside>
+
+            <div class="main-panel">
+              <div class="tab-panel active" id="tab-spectrum">
+                <div class="split-grid">
+                  <div class="visual-panel">
+                    <div class="panel-title-row">
+                      <h3>ИК-спектр</h3>
+                      <span class="hint">Пики кликабельны</span>
+                    </div>
+                    <div id="spectrumChart" class="chart-box"></div>
+                  </div>
+                  <div class="visual-panel">
+                    <div class="panel-title-row">
+                      <h3>Движение атомов</h3>
+                      <span class="hint">Собственный вектор как анимация</span>
+                    </div>
+                    <div id="moleculeViewer" class="molecule-viewer"></div>
+                    <div class="viewer-controls">
+                      <label>Амплитуда <input id="ampSlider" type="range" min="0.2" max="2.0" step="0.1" value="1.0" /></label>
+                      <label>Поворот <input id="rotSlider" type="range" min="-80" max="80" step="1" value="22" /></label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-panel" id="tab-modes">
+                <div class="visual-panel">
+                  <div class="panel-title-row">
+                    <h3>Нормальные моды</h3>
+                    <span class="hint">Мода = движение атомов + частота</span>
+                  </div>
+                  <div class="mode-grid" id="modeGrid"></div>
+                </div>
+              </div>
+
+              <div class="tab-panel" id="tab-stiffness">
+                <div class="split-grid">
+                  <div class="visual-panel">
+                    <div class="panel-title-row">
+                      <h3>Энергия деформации</h3>
+                      <span class="hint">Круче парабола — жестче фрагмент</span>
+                    </div>
+                    <div id="stiffnessControls" class="chip-row"></div>
+                    <div id="stiffnessChart" class="chart-box compact"></div>
+                    <label class="range-line">Деформация <input id="deformSlider" type="range" min="-1" max="1" step="0.01" value="0.35" /></label>
+                  </div>
+                  <div class="visual-panel">
+                    <div class="panel-title-row">
+                      <h3>Поверхность энергии</h3>
+                      <span class="hint">Две координаты сразу</span>
+                    </div>
+                    <canvas id="energySurface" class="surface-canvas" width="680" height="420"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-panel" id="tab-internal">
+                <div class="split-grid">
+                  <div class="visual-panel">
+                    <div class="panel-title-row">
+                      <h3>Связи и углы</h3>
+                      <span class="hint">Перевод x, y, z на язык химика</span>
+                    </div>
+                    <div id="internalChart" class="bar-list"></div>
+                  </div>
+                  <div class="visual-panel explainer">
+                    <h3>Зачем это нужно</h3>
+                    <p>Собственный вектор сначала выглядит как набор чисел. Мы переводим его в изменения длин связей и углов, чтобы доказать, какая химическая деформация отвечает за выбранный пик.</p>
+                    <div class="formula-box">r(A-B) = sqrt((xA-xB)^2 + (yA-yB)^2 + (zA-zB)^2)</div>
+                    <div class="formula-box">cos(theta) = (a · b) / (|a| |b|)</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-panel" id="tab-atoms">
+                <div class="split-grid">
+                  <div class="visual-panel">
+                    <div class="panel-title-row">
+                      <h3>Тепловая карта: атом — мода</h3>
+                      <span class="hint">Кто сильнее участвует</span>
+                    </div>
+                    <div id="atomHeatmap"></div>
+                  </div>
+                  <div class="visual-panel">
+                    <div class="panel-title-row">
+                      <h3>Вклад атомов в выбранный пик</h3>
+                      <span class="hint">Компоненты собственного вектора</span>
+                    </div>
+                    <div id="atomBars" class="bar-list"></div>
+                    <div class="formula-box">p_atom = qx^2 + qy^2 + qz^2</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-practice">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Игровой режим с подсказками</p>
+              <h2>Практикум: угадайте, какое движение стоит за пиком</h2>
+            </div>
+            <button class="primary-btn" id="newPractice">Новый вопрос</button>
+          </div>
+          <div class="practice-layout">
+            <div class="visual-panel">
+              <h3 id="practiceQuestion">Вопрос загружается...</h3>
+              <div id="practiceOptions" class="answer-grid"></div>
+              <div id="practiceFeedback" class="feedback-box muted">Выберите ответ, и здесь появится разбор.</div>
+            </div>
+            <div class="visual-panel">
+              <h3>Подсказка после ответа</h3>
+              <div id="practiceMiniSpectrum" class="chart-box compact"></div>
+              <div id="practiceMiniMolecule" class="mini-molecule"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-expert">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Продвинутый режим</p>
+              <h2>Эксперт: опишите пик без вариантов ответа</h2>
+            </div>
+            <button class="primary-btn" id="newExpert">Сгенерировать пик</button>
+          </div>
+          <div class="expert-layout">
+            <div class="visual-panel">
+              <div id="expertPrompt" class="expert-prompt">Пик будет сгенерирован автоматически.</div>
+              <div class="expert-form">
+                <label>Тип движения <input id="expertType" placeholder="например: растяжение связи" /></label>
+                <label>Связь или угол <input id="expertCoordinate" placeholder="например: C=O" /></label>
+                <label>Основные атомы <input id="expertAtoms" placeholder="например: C и O" /></label>
+                <label>Жесткость <input id="expertStiffness" placeholder="высокая / средняя / низкая" /></label>
+                <label>Химический смысл <textarea id="expertMeaning" placeholder="почему этот пик важен"></textarea></label>
+              </div>
+              <button class="primary-btn" id="checkExpert">Проверить</button>
+            </div>
+            <div class="visual-panel">
+              <h3>Разбор</h3>
+              <div id="expertResult" class="feedback-box muted">После проверки здесь появится подробный ответ.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="section-base">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Раздел для создателя</p>
+              <h2>База молекул и данные проекта</h2>
+            </div>
+            <button class="primary-btn" id="downloadData">Скачать JSON</button>
+          </div>
+          <div class="base-grid">
+            <div class="visual-panel">
+              <h3>Текущая база</h3>
+              <div id="databaseTable"></div>
+            </div>
+            <div class="visual-panel">
+              <h3>Как расширять платформу</h3>
+              <ol class="clean-list">
+                <li>Добавить координаты новой молекулы.</li>
+                <li>Добавить частоты и описания пиков.</li>
+                <li>Добавить нормальные моды или учебные векторы движения.</li>
+                <li>Заполнить карточки объяснений и источники.</li>
+              </ol>
+              <div class="data-note">Первая реализованная молекула — H2CO. Архитектура рассчитана на расширение базы.</div>
+            </div>
+            <div class="visual-panel wide">
+              <h3>Фрагмент данных</h3>
+              <pre id="dataPreview" class="json-preview"></pre>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
